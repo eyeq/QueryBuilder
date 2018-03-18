@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 public class Where implements WhereClause {
 
     private final StringBuilder clause;
+
     protected final List<Object> valueList;
 
     @SuppressWarnings("unchecked")
@@ -19,7 +20,11 @@ public class Where implements WhereClause {
     public Where(String clause, SelectQueryBuilder select) {
         this.clause = new StringBuilder(clause);
         this.valueList = new ArrayList<>();
-        select.addValue(this.valueList);
+
+        this.valueList.addAll(select.valueList);
+        if (select.where != null) {
+            this.valueList.addAll(select.where.getValueList());
+        }
     }
 
     public Where(String clause, Object... values) {
@@ -29,6 +34,7 @@ public class Where implements WhereClause {
     public Where(String clause, List<? extends Object> valueList) {
         this.clause = new StringBuilder(clause);
         this.valueList = new ArrayList<>(valueList.size());
+
         this.valueList.addAll(valueList);
     }
 
@@ -42,6 +48,10 @@ public class Where implements WhereClause {
         return this;
     }
 
+    public Where and(String clause) {
+        return this.and(new Where(clause));
+    }
+
     @Override
     public Where or(WhereClause where) {
         if (where == null) {
@@ -50,6 +60,10 @@ public class Where implements WhereClause {
         this.clause.append(" OR ").append(where.getClause());
         this.valueList.addAll(where.getValueList());
         return this;
+    }
+
+    public Where or(String clause) {
+        return this.or(new Where(clause));
     }
 
     @Override
