@@ -12,11 +12,16 @@ public class SelectQueryBuilder extends SelectSqlBuilder<SelectQueryBuilder> imp
     private final EntityManager em;
 
     private final String selectSql;
+
     protected final List<String> withList = new ArrayList<>();
-    protected final List<String> groupList = new ArrayList<>();
-    protected final List<String> orderList = new ArrayList<>();
-    protected final List<Object> valueList = new ArrayList<>();
+
     protected WhereClause where;
+
+    protected final List<String> groupList = new ArrayList<>();
+
+    protected final List<String> orderList = new ArrayList<>();
+
+    protected final List<Object> valueList = new ArrayList<>();
 
     protected int fetch = 0;
 
@@ -29,29 +34,32 @@ public class SelectQueryBuilder extends SelectSqlBuilder<SelectQueryBuilder> imp
         this.selectSql = selectSql;
     }
 
-    public SelectQueryBuilder addValue(List<Object> list) {
-        list.addAll(this.valueList);
-        if (this.where != null) {
-            list.addAll(this.where.getValueList());
+    private void addValue(SelectQueryBuilder sub) {
+        this.valueList.addAll(sub.valueList);
+        if (sub.where != null) {
+            this.addValue(sub.where);
         }
-        return this;
+    }
+
+    private void addValue(WhereClause where) {
+        this.valueList.addAll(where.getValueList());
     }
 
     public SelectQueryBuilder with(String name, SelectQueryBuilder select) {
         this.withList.add(name + " AS(" + select.toString() + ')');
-        select.addValue(this.valueList);
+        this.addValue(select);
         return this;
     }
 
-    public SelectQueryBuilder select(SelectQueryBuilder select) {
-        this.select('(' + select.toString() + ')');
-        select.addValue(this.valueList);
+    public SelectQueryBuilder select(String name, SelectQueryBuilder select) {
+        this.select('(' + select.toString() + ') AS' + name);
+        this.addValue(select);
         return this;
     }
 
     public SelectQueryBuilder selectExists(SelectQueryBuilder select) {
         this.select("EXISTS(" + select.toString() + ')');
-        select.addValue(this.valueList);
+        this.addValue(select);
         return this;
     }
 
@@ -61,19 +69,47 @@ public class SelectQueryBuilder extends SelectSqlBuilder<SelectQueryBuilder> imp
 
     public SelectQueryBuilder from(String name, SelectQueryBuilder select) {
         this.from('(' + select.toString() + ") AS " + name);
-        select.addValue(this.valueList);
+        this.addValue(select);
         return this;
     }
 
     public SelectQueryBuilder joinOn(String table, Where where) {
-        this.joinList.add(" JOIN " + table + " ON " + where.getClause());
-        this.valueList.add(where.valueList);
+        this.joinOn(table, where.getClause());
+        this.addValue(where);
+        return this;
+    }
+
+    public SelectQueryBuilder joinOn(String name, SelectQueryBuilder select, Where where) {
+        this.joinOn('(' + select.toString() + ") AS " + name, where.getClause());
+        this.addValue(select);
+        this.addValue(where);
         return this;
     }
 
     public SelectQueryBuilder leftJoinOn(String table, Where where) {
-        this.joinList.add(" LEFT JOIN " + table + " ON " + where.getClause());
-        this.valueList.add(where.valueList);
+        this.leftJoinOn(table, where.getClause());
+        this.addValue(where);
+        return this;
+    }
+
+    public SelectQueryBuilder leftJoinOn(String name, SelectQueryBuilder select, Where where) {
+        this.leftJoinOn('(' + select.toString() + ") AS " + name, where.getClause());
+        this.addValue(select);
+        this.addValue(where);
+        return this;
+    }
+
+    public SelectQueryBuilder joinUsing(String name, SelectQueryBuilder select, String column) {
+        this.joinUsing('(' + select.toString() + ") AS " + name, column);
+        this.addValue(select);
+        this.addValue(where);
+        return this;
+    }
+
+    public SelectQueryBuilder leftJoinUsing(String name, SelectQueryBuilder select, String column) {
+        this.leftJoinUsing('(' + select.toString() + ") AS " + name, column);
+        this.addValue(select);
+        this.addValue(where);
         return this;
     }
 
