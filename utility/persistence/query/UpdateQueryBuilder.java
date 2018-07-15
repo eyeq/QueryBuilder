@@ -13,7 +13,9 @@ public class UpdateQueryBuilder implements QueryBuilder {
     private final String tableName;
 
     protected final List<String> columnList = new ArrayList<>();
+
     protected final List<Object> valueList = new ArrayList<>();
+
     protected WhereClause where;
 
     public UpdateQueryBuilder(EntityManager em, String tableName) {
@@ -47,7 +49,17 @@ public class UpdateQueryBuilder implements QueryBuilder {
 
     @Override
     public Query build() {
-        Query query = em.createNativeQuery(this.toString());
+        return this.build(null);
+    }
+
+    @Override
+    public Query build(Class resultClass) {
+        Query query;
+        if (resultClass == null) {
+            query = em.createNativeQuery(this.toString());
+        } else {
+            query = em.createNativeQuery(this.toString(), resultClass);
+        }
 
         int i = 1;
         for (Object value : valueList) {

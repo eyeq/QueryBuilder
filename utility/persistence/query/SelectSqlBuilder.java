@@ -9,7 +9,9 @@ public class SelectSqlBuilder<T extends SelectSqlBuilder<T>> {
     private boolean distinct = false;
 
     protected final List<String> columnList = new ArrayList<>();
+
     protected final List<String> fromList = new ArrayList<>();
+
     protected final List<String> joinList = new ArrayList<>();
 
     public SelectSqlBuilder() {
@@ -54,7 +56,7 @@ public class SelectSqlBuilder<T extends SelectSqlBuilder<T>> {
         this.joinList.add(" LEFT JOIN " + table + " USING(" + column + ")");
         return (T) this;
     }
-	
+
     @SuppressWarnings("unchecked")
     public T leftJoinOn(String table, String condition) {
         this.joinList.add(" LEFT JOIN " + table + " ON " + condition);

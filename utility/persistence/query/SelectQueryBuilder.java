@@ -51,8 +51,14 @@ public class SelectQueryBuilder extends SelectSqlBuilder<SelectQueryBuilder> imp
         return this;
     }
 
+    public SelectQueryBuilder select(SelectQueryBuilder select) {
+        this.select('(' + select.toString() + ')');
+        this.addValue(select);
+        return this;
+    }
+
     public SelectQueryBuilder select(String name, SelectQueryBuilder select) {
-        this.select('(' + select.toString() + ') AS' + name);
+        this.select('(' + select.toString() + ") AS " + name);
         this.addValue(select);
         return this;
     }
@@ -63,8 +69,14 @@ public class SelectQueryBuilder extends SelectSqlBuilder<SelectQueryBuilder> imp
         return this;
     }
 
-    public SelectQueryBuilder selectExistsWhereEq(String tableName, String column, Object value) {
-        return this.selectExists(new SelectQueryBuilder(em).from(tableName).where(Where.eq(column, value)));
+    public SelectQueryBuilder selectExists(String name, SelectQueryBuilder select) {
+        this.select("EXISTS(" + select.toString() + ") AS " + name);
+        this.addValue(select);
+        return this;
+    }
+
+    public SelectQueryBuilder selectExists(String tableName, Where where) {
+        return this.selectExists(new SelectQueryBuilder(em).from(tableName).where(where));
     }
 
     public SelectQueryBuilder from(String name, SelectQueryBuilder select) {
@@ -102,14 +114,12 @@ public class SelectQueryBuilder extends SelectSqlBuilder<SelectQueryBuilder> imp
     public SelectQueryBuilder joinUsing(String name, SelectQueryBuilder select, String column) {
         this.joinUsing('(' + select.toString() + ") AS " + name, column);
         this.addValue(select);
-        this.addValue(where);
         return this;
     }
 
     public SelectQueryBuilder leftJoinUsing(String name, SelectQueryBuilder select, String column) {
         this.leftJoinUsing('(' + select.toString() + ") AS " + name, column);
         this.addValue(select);
-        this.addValue(where);
         return this;
     }
 
@@ -146,6 +156,7 @@ public class SelectQueryBuilder extends SelectSqlBuilder<SelectQueryBuilder> imp
         return this.build(null);
     }
 
+    @Override
     public Query build(Class resultClass) {
         Query query;
         if (resultClass == null) {

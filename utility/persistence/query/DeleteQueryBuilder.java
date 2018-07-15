@@ -27,7 +27,18 @@ public class DeleteQueryBuilder implements QueryBuilder {
 
     @Override
     public Query build() {
-        Query query = em.createNativeQuery(this.toString());
+        return this.build(null);
+    }
+
+    @Override
+    public Query build(Class resultClass) {
+        Query query;
+        if (resultClass == null) {
+            query = em.createNativeQuery(this.toString());
+        } else {
+            query = em.createNativeQuery(this.toString(), resultClass);
+        }
+
         int i = 1;
         if (where != null) {
             for (Object value : where.getValueList()) {

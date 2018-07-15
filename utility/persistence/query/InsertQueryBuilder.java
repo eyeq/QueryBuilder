@@ -8,13 +8,17 @@ import javax.persistence.Query;
 import utility.Encodable;
 import org.apache.commons.lang3.StringUtils;
 
+
 public class InsertQueryBuilder implements QueryBuilder {
 
     private final EntityManager em;
     private final String tableName;
 
     protected final List<String> positionList = new ArrayList<>();
+
     protected final List<Object> valueList = new ArrayList<>();
+
+    protected String returning = "";
 
     public InsertQueryBuilder(EntityManager em, String tableName) {
         this.em = em;
@@ -51,9 +55,25 @@ public class InsertQueryBuilder implements QueryBuilder {
         return this;
     }
 
+    public InsertQueryBuilder returinning(String returning) {
+        this.returning = returning;
+        return this;
+    }
+
     @Override
     public Query build() {
-        Query query = em.createNativeQuery(this.toString());
+        return this.build(null);
+    }
+
+    @Override
+    public Query build(Class resultClass) {
+        Query query;
+        if (resultClass == null) {
+            query = em.createNativeQuery(this.toString());
+        } else {
+            query = em.createNativeQuery(this.toString(), resultClass);
+        }
+
         for (int i = 0; i < valueList.size(); i++) {
             Object value = valueList.get(i);
             if (value instanceof Encodable) {
@@ -71,7 +91,11 @@ public class InsertQueryBuilder implements QueryBuilder {
         sql.append(tableName);
         sql.append(" VALUES(");
         sql.append(StringUtils.join(positionList, ','));
-        sql.append(");");
+        sql.append(")");
+        if (StringUtils.isNotEmpty(returning)) {
+            sql.append("RETURNING ");
+            sql.append(returning);
+        }
         return sql.toString();
     }
 }
