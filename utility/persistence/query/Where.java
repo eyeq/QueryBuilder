@@ -133,6 +133,18 @@ public class Where implements WhereClause {
         return this.and(in(column, select));
     }
 
+    public Where whereNotIn(String column, Object... values) {
+        return this.and(notin(column, values));
+    }
+
+    public Where whereNotIn(String column, List<? extends Object> values) {
+        return this.and(notin(column, values));
+    }
+
+    public Where whereNotIn(String column, SelectQueryBuilder select) {
+        return this.and(notin(column, select));
+    }
+
     public Where whereBetween(String startColumn, Object value, String endColumn) {
         return this.and(between(startColumn, value, endColumn));
     }
@@ -241,6 +253,27 @@ public class Where implements WhereClause {
 
     public static Where in(String column, SelectQueryBuilder select) {
         String clause = column + " IN (" + select.toString() + ')';
+        return new Where(clause, select);
+    }
+
+    public static Where notin(String column, Object... values) {
+        if (values.length == 0) {
+            return FALSE();
+        }
+        String clause = column + " NOT IN(?" + StringUtils.repeat(",?", values.length - 1) + ')';
+        return new Where(clause, values);
+    }
+
+    public static Where notin(String column, List<? extends Object> values) {
+        if (values.isEmpty()) {
+            return FALSE();
+        }
+        String clause = column + " NOT IN(?" + StringUtils.repeat(",?", values.size() - 1) + ')';
+        return new Where(clause, values);
+    }
+
+    public static Where notin(String column, SelectQueryBuilder select) {
+        String clause = column + " NOT IN (" + select.toString() + ')';
         return new Where(clause, select);
     }
 

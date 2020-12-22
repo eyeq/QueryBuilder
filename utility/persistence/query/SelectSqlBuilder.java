@@ -40,6 +40,12 @@ public class SelectSqlBuilder<T extends SelectSqlBuilder<T>> {
     }
 
     @SuppressWarnings("unchecked")
+    public T crossJoin(String table) {
+        this.joinList.add(" CROSS JOIN " + table);
+        return (T) this;
+    }
+
+    @SuppressWarnings("unchecked")
     public T joinUsing(String table, String column) {
         this.joinList.add(" JOIN " + table + " USING(" + column + ")");
         return (T) this;

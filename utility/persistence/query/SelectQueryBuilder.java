@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import utility.Encodable;
 import org.apache.commons.lang3.StringUtils;
+import utility.Encodable;
 
 public class SelectQueryBuilder extends SelectSqlBuilder<SelectQueryBuilder> implements QueryBuilder {
 
@@ -18,6 +18,8 @@ public class SelectQueryBuilder extends SelectSqlBuilder<SelectQueryBuilder> imp
     protected WhereClause where;
 
     protected final List<String> groupList = new ArrayList<>();
+
+    protected WhereClause having;
 
     protected final List<String> orderList = new ArrayList<>();
 
@@ -141,6 +143,15 @@ public class SelectQueryBuilder extends SelectSqlBuilder<SelectQueryBuilder> imp
         return this;
     }
 
+    public SelectQueryBuilder having(WhereClause having) {
+        if (this.having == null) {
+            this.having = having;
+        } else {
+            this.having.and(having);
+        }
+        return this;
+    }
+
     public SelectQueryBuilder orderBy(String column) {
         this.orderList.add(column);
         return this;
@@ -207,6 +218,10 @@ public class SelectQueryBuilder extends SelectSqlBuilder<SelectQueryBuilder> imp
         if (!groupList.isEmpty()) {
             sql.append(" GROUP BY ");
             sql.append(StringUtils.join(groupList, ','));
+        }
+        if (having != null) {
+            sql.append(" HAVING ");
+            sql.append(having.getClause());
         }
         if (!orderList.isEmpty()) {
             sql.append(" ORDER BY ");
